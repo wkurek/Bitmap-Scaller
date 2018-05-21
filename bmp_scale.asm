@@ -9,8 +9,8 @@ output_filename db 'scaled_image.bmp', 0
 section .text
 global func
 func:
-  push ebp
-  mov ebp, esp
+  push rbp
+  mov rbp, rsp
 
   mov r8, rsi ;output file witdth
   mov r9, rdx ;output file height
@@ -29,11 +29,11 @@ func:
   mov rdx, 54 ;length
   syscall
 
-  mov r10, dword [header+18] ;read input file width
-  mov dword [header+18], r8 ;alter width of image in header
+  mov r10d, dword [header+18] ;read input file width
+  mov dword [header+18], r8d ;alter width of image in header
 
-  mov r11, dword [header+22] ;read input file height
-  mov dword [header+22], r9 ;alter height of image in header
+  mov r11d, dword [header+22] ;read input file height
+  mov dword [header+22], r9d ;alter height of image in header
 
   ;calculate number of bytes in output file row
   mov rbx, 24
@@ -56,7 +56,7 @@ func:
   ;calculate size of data array in output file
   mov rax, r9
   mul r12
-  mov dword [header+34], rax ;alter size of data array in header
+  mov dword [header+34], eax ;alter size of data array in header
 
   ;open output file
   mov rdi, output_filename
@@ -126,35 +126,36 @@ fill_buffer_loop:
   mul r9
   shr rax, 16
 
+  mov rdi, 3
   mov rbx, r9
   mov rsi, rax
-  mul 3
+  mul rdi
   add rax, input_buffer
-  mov rdi, byte [eax]
+  mov cl, byte [eax]
   mov rax, rbx
-  mul 3
+  mul rdi
   add rax, output_buffer
-  mov byte [eax], rdi
+  mov byte [eax], cl
   inc rsi
   inc rbx
   mov rax, rsi
-  mul 3
+  mul rdi
   add rax, input_buffer
-  mov rdi, byte [eax]
+  mov cl, byte [eax]
   mov rax, rbx
-  mul 3
+  mul rdi
   add rax, output_buffer
-  mov byte [eax], rdi
+  mov byte [eax], cl
   inc rsi
   inc rbx
   mov rax, rsi
-  mul 3
+  mul rdi
   add rax, input_buffer
-  mov rdi, byte [eax]
+  mov cl, byte [eax]
   mov rax, rbx
-  mul 3
+  mul rdi
   add rax, output_buffer
-  mov byte [eax], rdi
+  mov byte [eax], cl
 
   inc r9
   cmp r9, r8
@@ -181,3 +182,7 @@ exit:
   mov rdi, r15
   mov rax, 3
   syscall
+
+  mov rsp, rbp
+  pop rbp
+  ret
