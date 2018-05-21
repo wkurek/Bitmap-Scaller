@@ -66,6 +66,7 @@ func:
   mov rdi, output_filename
   mov rsi, 0102o
   mov rax, 2 ;open file
+  mov rdx, 0666o
   syscall
 
 
@@ -142,36 +143,41 @@ fill_buffer_loop:
   mov rax, r10
   mul r9
   shr rax, 16
+
   mov rdi, 3
-  mov rbx, r9
-  mov rsi, rax
   mul rdi
   add rax, input_buffer
-  mov dl, byte [eax]
-  mov rax, rbx
+  mov rsi, rax ;rsi = address of pixel in input_buffer
+
+  mov rax, r9
   mul rdi
   add rax, output_buffer
-  mov byte [eax], dl
+  mov rbx, rax ;rbx = address of pixel in output file
+
+  mov rax, rsi
+  mov dl, byte [eax] ;read first byte of pixel from input_buffer
+
+  mov rax, rbx
+  mov byte [eax], dl ;write first byte of pixel to output_buffer
+
+
   inc rsi
   inc rbx
+
   mov rax, rsi
-  mul rdi
-  add rax, input_buffer
-  mov dl, byte [eax]
+  mov dl, byte [eax] ;read second byte of pixel from input_buffer
+
   mov rax, rbx
-  mul rdi
-  add rax, output_buffer
-  mov byte [eax], dl
+  mov byte [eax], dl ;write second byte of pixel to output_buffer
+
   inc rsi
   inc rbx
+
   mov rax, rsi
-  mul rdi
-  add rax, input_buffer
-  mov dl, byte [eax]
+  mov dl, byte [eax] ;read third byte of pixel from input_buffer
+
   mov rax, rbx
-  mul rdi
-  add rax, output_buffer
-  mov byte [eax], dl
+  mov byte [eax], dl ;write third byte of pixel to output_buffer
 
   inc r9
   cmp r9, r8
@@ -198,11 +204,6 @@ write_row:
   jge scalling_loop
 
 exit:
-  mov rax, rcx
-  mov rsp, rbp
-  pop rbp
-  ret
-
 
   ;close input file
   mov rdi, r14
