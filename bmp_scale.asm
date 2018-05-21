@@ -60,7 +60,7 @@ func:
   mul r12
   mov dword [header+34], eax ;alter size of data array in header
 
-  push r11 ;prevent value in r11
+  push r11 ;preserve value in r11
 
   ;open output file
   mov rdi, output_filename
@@ -69,9 +69,7 @@ func:
   mov rdx, 0666o
   syscall
 
-
   mov r15, rax ;output file descriptor
-
 
   ;write header to output file
   mov rdx, 54 ;length
@@ -113,8 +111,8 @@ scalling_loop:
   je end_read_loop
 
 read_loop:
-  push r11 ;prevent value in r11
-  push rcx
+  push r11 ;preserve value in r11
+  push rcx ;preserve value in r11
 
   ;read row from input file
   mov rax, 0
@@ -123,7 +121,7 @@ read_loop:
   mov rdx, r13
   syscall
 
-  pop rcx
+  pop rcx ;restore rcx from stack
   pop r11 ;restore r11 from stack
 
   dec rcx
@@ -160,7 +158,6 @@ fill_buffer_loop:
   mov rax, rbx
   mov byte [eax], dl ;write first byte of pixel to output_buffer
 
-
   inc rsi
   inc rbx
 
@@ -185,7 +182,7 @@ fill_buffer_loop:
 
 write_row:
   push r11 ;preserve r11 value
-  push rcx
+  push rcx ;preserve value of rcx
 
   ;write row to output file
   mov rax, 1
@@ -194,7 +191,7 @@ write_row:
   mov rdi, r15
   syscall
 
-  pop rcx
+  pop rcx ;restore rcx from stack
   pop r11 ;restore r11 from stack
 
   pop rbx
