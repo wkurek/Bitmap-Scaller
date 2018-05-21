@@ -29,9 +29,11 @@ func:
   mov rdx, 54 ;length
   syscall
 
+  mov r10, 0
   mov r10d, dword [header+18] ;read input file width
   mov dword [header+18], r8d ;alter width of image in header
 
+  mov r11, 0
   mov r11d, dword [header+22] ;read input file height
   mov dword [header+22], r9d ;alter height of image in header
 
@@ -58,13 +60,17 @@ func:
   mul r12
   mov dword [header+34], eax ;alter size of data array in header
 
+  push r11 ;prevent value in r11
+
   ;open output file
   mov rdi, output_filename
-  mov rsi, 0
+  mov rsi, 0102o
   mov rax, 2 ;open file
   syscall
 
+
   mov r15, rax ;output file descriptor
+
 
   ;write header to output file
   mov rdx, 54 ;length
@@ -73,9 +79,12 @@ func:
   mov rax, 1 ;write to file
   syscall
 
+  pop r11 ;restore r11 from stack
+
   ;init scaling loop values
   mov rbx, r9 ;j = destHeight -1
   dec rbx
+
 
   mov rcx, r11 ;currentRow = srcHeight
 
@@ -89,7 +98,7 @@ func:
   mov rax, r11
   shl rax, 16
   mov rdx, 0
-  idiv r11
+  idiv r9
   mov r11, rax ;ratioY
 
   cmp rbx, 0
@@ -103,6 +112,9 @@ scalling_loop:
   je end_read_loop
 
 read_loop:
+  push r11 ;prevent value in r11
+  push rcx
+
   ;read row from input file
   mov rax, 0
   mov rdi, r14
@@ -110,14 +122,19 @@ read_loop:
   mov rdx, r13
   syscall
 
+  pop rcx
+  pop r11 ;restore r11 from stack
+
   dec rcx
   mov rax, rbx
   mul r11
   shr rax, 16
+
   cmp rax, rcx
   jne read_loop
 
 end_read_loop:
+  push rbx
   mov r9, 0
   cmp r9, r8
   jge write_row
@@ -125,54 +142,68 @@ fill_buffer_loop:
   mov rax, r10
   mul r9
   shr rax, 16
-
   mov rdi, 3
   mov rbx, r9
   mov rsi, rax
   mul rdi
   add rax, input_buffer
-  mov cl, byte [eax]
+  mov dl, byte [eax]
   mov rax, rbx
   mul rdi
   add rax, output_buffer
-  mov byte [eax], cl
+  mov byte [eax], dl
   inc rsi
   inc rbx
   mov rax, rsi
   mul rdi
   add rax, input_buffer
-  mov cl, byte [eax]
+  mov dl, byte [eax]
   mov rax, rbx
   mul rdi
   add rax, output_buffer
-  mov byte [eax], cl
+  mov byte [eax], dl
   inc rsi
   inc rbx
   mov rax, rsi
   mul rdi
   add rax, input_buffer
-  mov cl, byte [eax]
+  mov dl, byte [eax]
   mov rax, rbx
   mul rdi
   add rax, output_buffer
-  mov byte [eax], cl
+  mov byte [eax], dl
 
   inc r9
   cmp r9, r8
   jl fill_buffer_loop
 
 write_row:
+  push r11 ;preserve r11 value
+  push rcx
+
   ;write row to output file
   mov rax, 1
   mov rdx, r12
   mov rsi, output_buffer
   mov rdi, r15
+  syscall
 
+  pop rcx
+  pop r11 ;restore r11 from stack
+
+  pop rbx
   dec rbx
+
   cmp rbx, 0
   jge scalling_loop
 
 exit:
+  mov rax, rcx
+  mov rsp, rbp
+  pop rbp
+  ret
+
+
   ;close input file
   mov rdi, r14
   mov rax, 3
