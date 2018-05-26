@@ -15,13 +15,14 @@
 #define CANVAS_HEIGHT 500
 #define CANVAS_WIDTH 900
 #define MARGIN 6
-#define CONSOLE_BITMAP_SIZE_CONTROL_MARGIN_LEFT 700
+#define CONSOLE_BITMAP_SIZE_CONTROL_MARGIN_LEFT 600
 
 
 extern "C" int func(char* path, int outputWidth, int outputHeight);
 
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bitmap = NULL;
+ALLEGRO_FONT *font8 = NULL;
 
 int bitmapWidth = 0, bitmapHeight = 0; //width and height of imported bitmap
 char* inputBitmapPath = "privacy.bmp"; //path to input file
@@ -58,6 +59,10 @@ void refreshScaledBitmap() {
 
     Point bitmapStartPoint = getBitmapStartCords(al_get_bitmap_width(bitmap), al_get_bitmap_height(bitmap));
     al_draw_bitmap(bitmap, bitmapStartPoint.x, bitmapStartPoint.y, 1);
+
+    al_draw_textf(font8, al_map_rgb(0, 0, 0), CONSOLE_BITMAP_SIZE_CONTROL_MARGIN_LEFT,
+        CONSOLE_HEIGHT/2, 0, "width: %d px  height: %d px", bitmapWidth, bitmapHeight);
+
     al_flip_display();
 }
 
@@ -76,6 +81,12 @@ double getBitmapLoadTime(int bitmapWidth, int bitmapHeight) {
     return pixelsNumber/1000000*9.6 + 0.114;
 }
 
+void printBitmapSize() {
+    al_draw_textf(font8, al_map_rgb(0, 0, 0), CONSOLE_BITMAP_SIZE_CONTROL_MARGIN_LEFT,
+        CONSOLE_HEIGHT/2, 0, "width: %d px  height: %d px", bitmapWidth, bitmapHeight);
+    al_flip_display();
+}
+
 int main(int argc, char **argv) {
 
     //Init allegro library
@@ -85,7 +96,7 @@ int main(int argc, char **argv) {
    }
 
    al_init_font_addon();
-   ALLEGRO_FONT *font8 = al_create_builtin_font();
+   font8 = al_create_builtin_font();
 
    //Create and set up display
    display = al_create_display(DISPLAY_WIDTH, DISPLAY_HEIGHT);
@@ -148,21 +159,29 @@ int main(int argc, char **argv) {
 
                                 bitmapWidth-=4;
                                 bitmapSizeChanged = true;
+
+                                printBitmapSize();
                             } else if (event.keyboard.keycode == ALLEGRO_KEY_RIGHT
                                 && bitmapWidth < CANVAS_WIDTH) {
 
                                 bitmapWidth+=4;
                                 bitmapSizeChanged = true;
+
+                                printBitmapSize();
                             } else if (event.keyboard.keycode == ALLEGRO_KEY_UP
                                 && bitmapHeight < CANVAS_HEIGHT) {
 
                                 bitmapHeight+=4;
                                 bitmapSizeChanged = true;
+
+                                printBitmapSize();
                             } else if (event.keyboard.keycode == ALLEGRO_KEY_DOWN
                                 && bitmapHeight > 10) {
 
                                 bitmapHeight-=4;
                                 bitmapSizeChanged = true;
+
+                                printBitmapSize();
                             }
 
                             time = al_get_time();
