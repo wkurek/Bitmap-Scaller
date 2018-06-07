@@ -1,8 +1,12 @@
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
+
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
+
 
 #define MAX_BITMAP_PATH_LENGTH 24
 #define SCALED_BITMAP_FILENAME "scaled_image.bmp"
@@ -15,7 +19,7 @@
 #define CANVAS_HEIGHT 500
 #define CANVAS_WIDTH 900
 #define MARGIN 6
-#define CONSOLE_BITMAP_SIZE_CONTROL_MARGIN_LEFT 600
+#define CONSOLE_BITMAP_SIZE_CONTROL_MARGIN_LEFT 350
 
 
 extern "C" int func(char* path, int outputWidth, int outputHeight);
@@ -25,7 +29,7 @@ ALLEGRO_BITMAP *bitmap = NULL;
 ALLEGRO_FONT *font8 = NULL;
 
 int bitmapWidth = 0, bitmapHeight = 0; //width and height of imported bitmap
-char* inputBitmapPath = "privacy.bmp"; //path to input file
+char inputBitmapPath[256]; //path to input file
 
 struct Point {
     float x, y;
@@ -87,7 +91,22 @@ void printBitmapSize() {
     al_flip_display();
 }
 
+bool fexists(const char *filename) {
+  std::ifstream ifile(filename);
+  return (bool)ifile;
+}
+
 int main(int argc, char **argv) {
+    //Acquire bitmap path
+    if(argc != 2) {
+        std::cout<<"1 argument is required: bitmap path"<<std::endl;
+        return 0;
+    } else if (fexists(argv[1]) && strlen(argv[1]) <= 256) {
+        strcpy(inputBitmapPath, argv[1]);
+    } else {
+        std::cerr<<"Error: Provided bitmap path is invalid"<<std::endl;
+        return 0;
+    }
 
     //Init allegro library
    if(!al_init() || !al_init_image_addon()) {
